@@ -44,7 +44,7 @@ export class ApiService {
 
   getGlyphSvg(data) {
     return this.httpService
-      .post('http://13.231.24.228/api/gen', data)
+      .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', data)
       .pipe(
         map((res) => {
           return res.data;
