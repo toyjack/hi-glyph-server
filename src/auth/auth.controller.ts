@@ -1,10 +1,10 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiExcludeController } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 
-@ApiTags('Auth')
 @Controller('auth')
+@ApiExcludeController()
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('/register')
