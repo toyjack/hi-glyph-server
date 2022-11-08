@@ -5,7 +5,7 @@ import { Type } from 'class-transformer';
 export class QueryDto {
   @ApiProperty({
     required: false,
-    description: 'blablabla...',
+    description: '字形データに含まれるグリフ名',
     example: 'u4e00',
   })
   @IsOptional()
@@ -14,20 +14,32 @@ export class QueryDto {
 
   @ApiProperty({
     required: false,
-    description: 'blablabla...',
+    description: '関連漢字のグリフ名',
     example: 'u4e00',
   })
   @IsOptional()
   @IsString()
   related?: string;
 
-  @ApiProperty({ required: false, minimum: 0, default: 0, example: 0 })
+  @ApiProperty({
+    required: false,
+    minimum: 0,
+    default: 0,
+    example: 0,
+    description: '検索結果のオフセット量',
+  })
   @IsOptional()
   @IsInt()
   @Type(() => Number)
   skip?: number;
 
-  @ApiProperty({ required: false, minimum: 1, default: 50, example: 50 })
+  @ApiProperty({
+    required: false,
+    minimum: 1,
+    default: 50,
+    example: 50,
+    description: '検索結果の取得件数',
+  })
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -35,7 +47,7 @@ export class QueryDto {
 
   @ApiProperty({
     required: false,
-    description: 'blablabla...',
+    description: 'グリフを作成したユーザー名',
     example: 'hdic',
   })
   @IsOptional()

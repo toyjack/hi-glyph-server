@@ -2,26 +2,58 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
 import { QueryDto } from './dto';
-@ApiTags('Hi-Glyph')
-@Controller('api')
-export class ApiController {
+
+interface Kage {
+  name: string;
+  related?: string;
+  data: string;
+}
+
+@ApiTags('Show Glyph')
+@Controller('api/glyph')
+export class GlyphController {
   constructor(private apiService: ApiService) {}
 
-  @Get('/glyph/:name')
+  @Get('/:glyphName')
   @ApiParam({
-    name: 'name',
+    name: 'glyphName',
     required: true,
-    description: 'glyph name',
+    description: 'GlyphWikiで登録されている字形名',
     type: String,
     example: 'u4e00',
   })
-  getGlyph(@Param('name') name: string) {
-    return this.apiService.getGlyph(name);
+  async getGlyph(@Param('glyphName') name: string) {
+    return await this.apiService.getGlyph(name);
   }
 
-  @Get('/glyphs')
+  @Get('/:name/svg')
+  @ApiParam({
+    name: 'glyphName',
+    required: true,
+    description: 'GlyphWikiで登録されている字形名',
+    type: String,
+    example: 'u4e00',
+  })
+  async getSvg(@Param('name') name: string) {
+    const polygons = (await this.apiService.getPolygons(name)) || [];
+    const target = polygons.shift(); // remove the first polygon
+    const body = { target, polygons };
+
+    return this.apiService.getGlyphSvg(body);
+  }
+}
+@ApiTags('Search Glyph')
+@Controller('api/glyphs')
+export class GlyphSearchController {
+  constructor(private apiService: ApiService) {}
+  @Get('/')
   async getGlyphsByQuery(@Query() query: QueryDto) {
     // return query;
     return await this.apiService.getGlyphsByQuery(query);
   }
+}
+
+@Controller('api')
+export class ApiController {
+  constructor(private apiService: ApiService) {}
 }
