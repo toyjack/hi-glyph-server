@@ -8,18 +8,6 @@ import { QueryDto } from './dto';
 export class GlyphController {
   constructor(private apiService: ApiService) {}
 
-  @Get('/dkw/:dkw_num')
-  @ApiParam({
-    name: 'dkw_num',
-    type: 'string',
-    description: '大漢和辞書番号',
-    required: true,
-    example: '00001',
-  })
-  asyncGetDkwGlyph(@Param('dkw_num') dkw_num: string) {
-    return this.apiService.getDkwGlyph(dkw_num);
-  }
-
   @Get('/:glyphName')
   @ApiParam({
     name: 'glyphName',
@@ -32,7 +20,7 @@ export class GlyphController {
     return await this.apiService.getGlyph(name);
   }
 
-  @Get('/:name/svg')
+  @Get('/:glyphName/svg')
   @ApiParam({
     name: 'glyphName',
     required: true,
@@ -40,7 +28,36 @@ export class GlyphController {
     type: String,
     example: 'u4e00',
   })
-  async getSvg(@Param('name') name: string) {
+  async getSvg(@Param('glyphName') name: string) {
+    const polygons = (await this.apiService.getPolygons(name)) || [];
+    const target = polygons.shift(); // remove the first polygon
+    const body = { target, polygons };
+
+    return this.apiService.getGlyphSvg(body);
+  }
+
+  @Get('/dkw/:dkw_num')
+  @ApiParam({
+    name: 'dkw_num',
+    type: 'string',
+    description: '大漢和辞書番号でKage字形データを示す',
+    required: true,
+    example: '00001',
+  })
+  asyncGetDkwGlyph(@Param('dkw_num') dkw_num: string) {
+    return this.apiService.getDkwGlyph(dkw_num);
+  }
+
+  @Get('/dkw/:dkw_num/svg')
+  @ApiParam({
+    name: 'dkw_num',
+    type: 'string',
+    description: '大漢和辞書番号でSVG字形画像を示す',
+    required: true,
+    example: '00001',
+  })
+  async GetDkwGlyphSvg(@Param('dkw_num') dkw_num: string) {
+    const name = 'dkw-' + dkw_num;
     const polygons = (await this.apiService.getPolygons(name)) || [];
     const target = polygons.shift(); // remove the first polygon
     const body = { target, polygons };
@@ -48,6 +65,7 @@ export class GlyphController {
     return this.apiService.getGlyphSvg(body);
   }
 }
+
 @ApiTags('Search Glyph')
 @Controller('api/glyphs')
 export class GlyphSearchController {
