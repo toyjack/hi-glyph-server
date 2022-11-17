@@ -11,11 +11,6 @@ interface Kage {
   data: string;
 }
 
-interface GenBody {
-  target: Kage;
-  polygons: Kage[];
-}
-
 @Injectable()
 export class ApiService {
   constructor(
@@ -118,5 +113,19 @@ export class ApiService {
       query,
       results: glyphs,
     };
+  }
+  async getDkwGlyph(dkw_num: string) {
+    const dkwID = 'dkw-' + dkw_num;
+    const glyph = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name: dkwID,
+      },
+      select: {
+        name: true,
+        related: true,
+        data: true,
+      },
+    });
+    return { glyph };
   }
 }

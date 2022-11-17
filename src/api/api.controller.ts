@@ -3,16 +3,22 @@ import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
 import { QueryDto } from './dto';
 
-interface Kage {
-  name: string;
-  related?: string;
-  data: string;
-}
-
 @ApiTags('Show Glyph')
 @Controller('api/glyph')
 export class GlyphController {
   constructor(private apiService: ApiService) {}
+
+  @Get('/dkw/:dkw_num')
+  @ApiParam({
+    name: 'dkw_num',
+    type: 'string',
+    description: '大漢和辞書番号',
+    required: true,
+    example: '00001',
+  })
+  asyncGetDkwGlyph(@Param('dkw_num') dkw_num: string) {
+    return this.apiService.getDkwGlyph(dkw_num);
+  }
 
   @Get('/:glyphName')
   @ApiParam({
