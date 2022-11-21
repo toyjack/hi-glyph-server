@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, Header } from '@nestjs/common';
 import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
 import { QueryDto } from './dto';
@@ -7,6 +7,13 @@ import { QueryDto } from './dto';
 @Controller('api/glyph')
 export class GlyphController {
   constructor(private apiService: ApiService) {}
+
+  @Get('/test.png')
+  @Header('Content-Type', 'image/png')
+  @Header('Content-Disposition', 'attachment; filename=test123.png')
+  async getTest(@Res() res) {
+    res.send(await this.apiService.getPngGlyph('u4e00'));
+  }
 
   @Get('/:glyphName')
   @ApiParam({
@@ -20,7 +27,7 @@ export class GlyphController {
     return await this.apiService.getGlyph(name);
   }
 
-  @Get('/:glyphName/svg')
+  @Get(':glyphName/svg')
   @ApiParam({
     name: 'glyphName',
     required: true,
@@ -34,6 +41,22 @@ export class GlyphController {
     const body = { target, polygons };
 
     return this.apiService.getGlyphSvg(body);
+  }
+
+  @Get(':glyphName.:ext')
+  @Header('Content-Type', 'image/png')
+  @Header('Content-Disposition', 'attachment; filename=test123.png')
+  @ApiParam({
+    name: 'glyphName',
+    required: true,
+    description: 'GlyphWikiで登録されている字形名',
+    type: String,
+    example: 'u4e00',
+  })
+  getPng(@Param() params) {
+    // return this.apiService.getPngGlyph(name);
+    console.log(params);
+    return { params };
   }
 
   @Get('/dkw/:dkw_num')

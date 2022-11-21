@@ -1,3 +1,6 @@
+/storage/*
+!/storage/images/png/.gitkeep
+!/storage/images/svg/.gitkeep
 # compiled output
 /dist
 /node_modules

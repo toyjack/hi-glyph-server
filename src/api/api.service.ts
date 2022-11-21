@@ -1,6 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { map, catchError } from 'rxjs';
+import { map, catchError, lastValueFrom } from 'rxjs';
+import * as sharp from 'sharp';
 
 import { QueryDto } from './dto';
 import { HttpService } from '@nestjs/axios';
@@ -17,6 +18,29 @@ export class ApiService {
     private prisma: PrismaService,
     private httpService: HttpService,
   ) {}
+
+  async svgToPng(svg: string, bg = '#ffffff', size = 200) {
+    const svgBuffer = Buffer.from(svg, 'utf8');
+    // const metadata = await sharp(svgBuffer).metadata();
+    // console.log(metadata);
+    const pngBuffer = await sharp(svgBuffer)
+      .resize(size, size)
+      .png()
+      .flatten({ background: bg }) // add background
+      .toBuffer();
+
+    return pngBuffer;
+  }
+
+  async getPngGlyph(name: string) {
+    const polygons = (await this.getPolygons(name)) || [];
+    const target = polygons.shift(); // remove the first polygon
+    const body = { target, polygons };
+
+    const svg = await this.getGlyphSvg(body);
+    const pngBuffer = await this.svgToPng(svg, '#ffffff', 200);
+    return pngBuffer;
+  }
 
   async getGlyph(name: string) {
     const glyph = await this.prisma.glyphwiki.findUnique({
@@ -37,23 +61,20 @@ export class ApiService {
     }
   }
 
-  getGlyphSvg(data) {
-    return this.httpService
-      .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', data)
+  async getGlyphSvg(data) {
+    const source = this.httpService
+      .post('http://localhost:4000/api/gen', data)
+      // .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', data)
       .pipe(
+        catchError((err) => {
+          throw new ForbiddenException('API not available');
+        }),
         map((res) => {
           return res.data;
         }),
-        // map((bpi) => bpi?.USD),
-        // map((usd) => {
-        //   return usd?.rate;
-        // }),
-      )
-      .pipe(
-        catchError(() => {
-          throw new ForbiddenException('API not available');
-        }),
       );
+
+    return await lastValueFrom(source);
   }
 
   async getPolygons(name: string, results = []): Promise<Kage[]> {
