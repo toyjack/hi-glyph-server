@@ -3,8 +3,8 @@ import { HttpService } from '@nestjs/axios';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { map, catchError, lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
-import { open } from 'fs/promises';
-import { join } from 'path';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 interface Kage {
   name: string;
@@ -20,26 +20,40 @@ export class ImagesService {
   ) {}
 
   async getPng(name: string) {
-    const svg = await this.getSvg(name);
-    const pngBuffer = await this.svgToPng(svg, '#ffffff', 200);
-    // console.log(process.cwd());
-    const filePath = join(
+    const filePath = path.join(
       process.cwd(),
       'storage',
       'images',
       'png',
       name + '.png',
     );
+    // look for the file in the cache
+    let pngBuffer = null;
+    if (await this.ifFileExists(filePath)) {
+      try {
+        pngBuffer = await fs.readFile(filePath);
+        return pngBuffer;
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      // if not found, generate the file
+      const svg = await this.getSvg(name);
+      const pngBuffer = await this.svgToPng(svg, '#ffffff', 200);
+      // then save it to the cache
+      await this.saveFile(filePath, pngBuffer);
+      return pngBuffer;
+    }
+  }
 
-    await this.saveFile(filePath, pngBuffer);
-
-    return pngBuffer;
+  async ifFileExists(filePath: string) {
+    return !!(await fs.stat(filePath).catch(() => false));
   }
 
   async saveFile(filePath: string, buffer: Buffer) {
     let fileHandle = null;
     try {
-      fileHandle = await open(filePath, 'w');
+      fileHandle = await fs.open(filePath, 'w');
       await fileHandle.writeFile(buffer);
     } finally {
       await fileHandle?.close();
@@ -47,23 +61,45 @@ export class ImagesService {
   }
 
   async getSvg(name: string) {
-    const polygons = (await this.getPolygons(name)) || [];
-    const target = polygons.shift(); // remove the first polygon
-    const body = { target, polygons };
+    const filePath = path.join(
+      process.cwd(),
+      'storage',
+      'images',
+      'svg',
+      name + '.svg',
+    );
+    // look for the file in the cache
+    if (await this.ifFileExists(filePath)) {
+      //
+      console.log('svg exitst');
+      try {
+        const svg = await fs.readFile(filePath);
+        return svg.toString('utf-8');
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      const polygons = (await this.getPolygons(name)) || [];
+      const target = polygons.shift(); // remove the first polygon
+      const body = { target, polygons };
 
-    const source = this.httpService
-      .post('http://localhost:4000/api/gen', body)
-      // .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', body)
-      .pipe(
-        catchError(() => {
-          throw new ForbiddenException('API not available');
-        }),
-        map((res) => {
-          return res.data;
-        }),
-      );
-
-    return await lastValueFrom(source);
+      const source = this.httpService
+        .post('http://localhost:4000/api/gen', body)
+        // .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', body)
+        .pipe(
+          catchError(() => {
+            throw new ForbiddenException('API not available');
+          }),
+          map((res) => res.data),
+        );
+      const svgHeader = `<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+`;
+      const svg = svgHeader + (await lastValueFrom(source));
+      await this.saveFile(filePath, Buffer.from(svg, 'utf8'));
+      return svg;
+    }
   }
 
   async getPolygons(name: string, results = []): Promise<Kage[]> {
