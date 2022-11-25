@@ -1,18 +1,36 @@
-import { Controller, Get, Param, Query, Res, Header } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Header,
+  Post,
+  Body,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
-import { QueryDto } from './dto';
+import { QueryDto, CreateDto, UpdateDto } from './dto';
 
 @ApiTags('Show Glyph')
 @Controller('api/glyph')
 export class GlyphController {
   constructor(private apiService: ApiService) {}
 
-  @Get('/test.png')
-  @Header('Content-Type', 'image/png')
-  @Header('Content-Disposition', 'attachment; filename=test123.png')
-  async getTest(@Res() res) {
-    res.send(await this.apiService.getPngGlyph('u4e00'));
+  @Post('')
+  async createGlyph(@Body() dto: CreateDto) {
+    return this.apiService.createGlyph(dto);
+  }
+
+  @Patch(':glyphName')
+  async updateGlyph(@Param('glyphName') name: string, @Body() dto: UpdateDto) {
+    return await this.apiService.updateGlyph(name, dto);
+  }
+
+  @Delete('/:glyphName')
+  async deleteGlyph(@Param('glyphName') name: string) {
+    return await this.apiService.deleteGlyph(name);
   }
 
   @Get('/:glyphName')

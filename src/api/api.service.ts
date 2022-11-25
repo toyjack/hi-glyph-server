@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { map, catchError, lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 
-import { QueryDto } from './dto';
+import { CreateDto, QueryDto, UpdateDto } from './dto';
 import { HttpService } from '@nestjs/axios';
 
 interface Kage {
@@ -18,6 +18,61 @@ export class ApiService {
     private prisma: PrismaService,
     private httpService: HttpService,
   ) {}
+
+  async createGlyph(dto: CreateDto) {
+    const glyphInDb = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name: dto.name,
+      },
+    });
+    if (glyphInDb) {
+      return { message: 'glyph already exists' };
+    }
+
+    if (!dto.related) dto.related = '〓';
+    const glyph = await this.prisma.glyphwiki.create({
+      data: dto,
+    });
+    return glyph;
+  }
+
+  async updateGlyph(name: string, dto: UpdateDto) {
+    const glyphInDb = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name,
+      },
+    });
+    if (!glyphInDb) {
+      return { message: 'glyph not found' };
+    }
+
+    const updatedGlyph = await this.prisma.glyphwiki.update({
+      where: {
+        name,
+      },
+      data: dto,
+    });
+
+    return updatedGlyph;
+  }
+
+  async deleteGlyph(name: string) {
+    const glyphInDb = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name,
+      },
+    });
+    if (!glyphInDb) {
+      return { message: 'glyph does not exist' };
+    }
+
+    const glyph = await this.prisma.glyphwiki.delete({
+      where: {
+        name,
+      },
+    });
+    return glyph;
+  }
 
   async svgToPng(svg: string, bg = '#ffffff', size = 200) {
     const svgBuffer = Buffer.from(svg, 'utf8');
