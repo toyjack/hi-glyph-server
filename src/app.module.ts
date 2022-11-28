@@ -10,9 +10,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ImagesController } from './images/images.controller';
 import { ImagesService } from './images/images.service';
 import { ImagesModule } from './images/images.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     ApiModule,
     AuthModule,
     HttpModule,
