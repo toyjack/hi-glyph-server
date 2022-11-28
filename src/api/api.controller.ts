@@ -3,20 +3,25 @@ import {
   Get,
   Param,
   Query,
-  Header,
   Post,
   Body,
   Delete,
   Patch,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
-import { QueryDto, CreateDto, UpdateDto } from './dto';
+import { QueryDto, CreateDto, UpdateDto, KageEditor } from './dto';
 
 @ApiTags('Show Glyph')
 @Controller('api/glyph')
 export class GlyphController {
   constructor(private apiService: ApiService) {}
+
+  @Post('submit_glyph')
+  async submitGlyph(@Body() body: KageEditor) {
+    return this.apiService.submitGlyph(body);
+  }
 
   @Post('')
   async createGlyph(@Body() dto: CreateDto) {
@@ -39,7 +44,7 @@ export class GlyphController {
     required: true,
     description: 'GlyphWikiで登録されている字形名',
     type: String,
-    example: 'u4e00',
+    example: 'sandbox',
   })
   async getGlyph(@Param('glyphName') name: string) {
     return await this.apiService.getGlyph(name);
@@ -51,7 +56,7 @@ export class GlyphController {
     required: true,
     description: 'GlyphWikiで登録されている字形名',
     type: String,
-    example: 'u4e00',
+    example: 'sandbox',
   })
   async getSvg(@Param('glyphName') name: string) {
     const polygons = (await this.apiService.getPolygons(name)) || [];
@@ -61,20 +66,18 @@ export class GlyphController {
     return this.apiService.getGlyphSvg(body);
   }
 
-  @Get(':glyphName.:ext')
-  @Header('Content-Type', 'image/png')
-  @Header('Content-Disposition', 'attachment; filename=test123.png')
+  @Get(':glyphName/png')
   @ApiParam({
     name: 'glyphName',
     required: true,
     description: 'GlyphWikiで登録されている字形名',
     type: String,
-    example: 'u4e00',
+    example: 'sandbox',
   })
-  getPng(@Param() params) {
-    // return this.apiService.getPngGlyph(name);
-    console.log(params);
-    return { params };
+  async getPng(@Param('glyphName') name: string, @Res() res) {
+    res
+      .set('Content-Type', 'image/png')
+      .send(await this.apiService.getPngGlyph(name));
   }
 
   @Get('/dkw/:dkw_num')

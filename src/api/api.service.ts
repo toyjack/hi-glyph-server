@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { map, catchError, lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 
-import { CreateDto, QueryDto, UpdateDto } from './dto';
+import { CreateDto, KageEditor, QueryDto, UpdateDto } from './dto';
 import { HttpService } from '@nestjs/axios';
 
 interface Kage {
@@ -18,6 +18,31 @@ export class ApiService {
     private prisma: PrismaService,
     private httpService: HttpService,
   ) {}
+
+  async submitGlyph(kageEditorData: KageEditor) {
+    const name = kageEditorData.page;
+    if (await this.ifGlyphExists(name)) {
+      return await this.updateGlyph(name, {
+        data: kageEditorData.textbox,
+        related: kageEditorData.related,
+      });
+    } else {
+      return await this.createGlyph({
+        name,
+        data: kageEditorData.textbox,
+        related: kageEditorData.related,
+      });
+    }
+  }
+
+  async ifGlyphExists(name: string) {
+    const glyph = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name,
+      },
+    });
+    return glyph ? true : false;
+  }
 
   async createGlyph(dto: CreateDto) {
     const glyphInDb = await this.prisma.glyphwiki.findUnique({
