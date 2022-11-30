@@ -1,4 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Request,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
@@ -11,25 +19,31 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
   ) {}
-  @Post('/register')
-  signupLocal(@Body() dto: AuthDto) {
-    // return this.authService.register(dto);
+
+  @Post('register')
+  register(@Body() dto: AuthDto) {
     return this.userService.create(dto.email, dto.password);
   }
 
-  @Post('/login')
-  loginLocal(@Body() dto: AuthDto) {
-    // return this.authService.login(dto);
-    return this.authService.validateUser(dto.email, dto.password);
+  @UseGuards(AuthGuard('local'))
+  @Post('login')
+  loginLocal(@Request() req) {
+    return this.authService.login(req.user);
   }
 
-  @Post('/logout')
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile')
+  profile(@Request() req) {
+    return req.user;
+  }
+
+  @Post('logout')
   logout() {
-    return this.authService.logout();
+    // return this.authService.logout();
   }
 
-  @Post('/refresh')
+  @Post('refresh')
   refreshTokens() {
-    this.authService.refreshTokens();
+    // this.authService.refreshTokens();
   }
 }

@@ -12,6 +12,7 @@ import { ImagesService } from './images/images.service';
 import { ImagesModule } from './images/images.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     HttpModule,
     PrismaModule,
+    JwtModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
     }),
