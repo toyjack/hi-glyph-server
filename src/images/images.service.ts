@@ -5,6 +5,7 @@ import { map, catchError, lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { ConfigService } from '@nestjs/config';
 
 interface Kage {
   name: string;
@@ -17,6 +18,7 @@ export class ImagesService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
 
   async getPng(name: string) {
@@ -82,16 +84,13 @@ export class ImagesService {
       const polygons = (await this.getPolygons(name)) || [];
       const target = polygons.shift(); // remove the first polygon
       const body = { target, polygons };
-
-      const source = this.httpService
-        .post('http://localhost:4000/api/gen', body)
-        // .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', body)
-        .pipe(
-          catchError(() => {
-            throw new ForbiddenException('API not available');
-          }),
-          map((res) => res.data),
-        );
+      const kageServerUrl = this.configService.get('KAGE_SERVER');
+      const source = this.httpService.post(kageServerUrl, body).pipe(
+        catchError(() => {
+          throw new ForbiddenException('API not available');
+        }),
+        map((res) => res.data),
+      );
       const svgHeader = `<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -126,7 +125,7 @@ export class ImagesService {
       }
 
       return results;
-    }
+    } else return null;
   }
 
   async svgToPng(svg: string, bg = '#ffffff', size = 200) {
