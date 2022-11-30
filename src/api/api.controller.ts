@@ -20,27 +20,31 @@ import { QueryDto, CreateDto, UpdateDto, KageEditor } from './dto';
 export class GlyphController {
   constructor(private apiService: ApiService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('submit_glyph')
   async submitGlyph(@Body() body: KageEditor) {
     return this.apiService.submitGlyph(body);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('')
   async createGlyph(@Body() dto: CreateDto) {
     return this.apiService.createGlyph(dto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':glyphName')
   async updateGlyph(@Param('glyphName') name: string, @Body() dto: UpdateDto) {
     return await this.apiService.updateGlyph(name, dto);
   }
 
-  @Delete('/:glyphName')
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':glyphName')
   async deleteGlyph(@Param('glyphName') name: string) {
     return await this.apiService.deleteGlyph(name);
   }
 
-  @Get('/:glyphName')
+  @Get(':glyphName')
   @ApiParam({
     name: 'glyphName',
     required: true,
@@ -82,7 +86,7 @@ export class GlyphController {
       .send(await this.apiService.getPngGlyph(name));
   }
 
-  @Get('/dkw/:dkw_num')
+  @Get('dkw/:dkw_num')
   @ApiParam({
     name: 'dkw_num',
     type: 'string',
@@ -94,7 +98,7 @@ export class GlyphController {
     return this.apiService.getDkwGlyph(dkw_num);
   }
 
-  @Get('/dkw/:dkw_num/svg')
+  @Get('dkw/:dkw_num/svg')
   @ApiParam({
     name: 'dkw_num',
     type: 'string',
