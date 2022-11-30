@@ -8,7 +8,9 @@ import {
   Delete,
   Patch,
   Res,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
 import { QueryDto, CreateDto, UpdateDto, KageEditor } from './dto';

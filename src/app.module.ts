@@ -11,6 +11,7 @@ import { ImagesController } from './images/images.controller';
 import { ImagesService } from './images/images.service';
 import { ImagesModule } from './images/images.module';
 import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
       rootPath: join(__dirname, '..', 'client'),
     }),
     ImagesModule,
+    UserModule,
   ],
   providers: [PrismaService, AuthService, ImagesService],
   controllers: [ImagesController],

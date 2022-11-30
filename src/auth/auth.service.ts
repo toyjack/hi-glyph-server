@@ -2,12 +2,35 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as bcrypt from 'bcrypt';
-import { Prisma, User } from '.prisma/client';
-import { userInfo } from 'os';
+import { User } from '.prisma/client';
+import { UserService } from 'src/user/user.service';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UserService,
+  ) {}
+
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.userService.findOne(email);
+
+    if (!user) {
+      return {
+        msg: 'User not found',
+      };
+    }
+
+    if (await argon2.verify(user.hash, password)) {
+      return user;
+    }
+
+    return {
+      msg: 'Invalid password',
+    };
+  }
+  //
 
   hashData(data: string) {
     return bcrypt.hash(data, 10);
