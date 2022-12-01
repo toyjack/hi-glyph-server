@@ -17,6 +17,9 @@ async function bootstrap() {
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('swagger', app, swaggerDocument);
 
+  // Cors
+  app.enableCors();
+
   //whitelist dtoにないものを全部除外する
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
