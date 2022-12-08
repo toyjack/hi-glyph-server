@@ -30,22 +30,22 @@ export class ImagesService {
       name + '.png',
     );
     // look for the file in the cache
-    let pngBuffer = null;
-    if (await this.ifFileExists(filePath)) {
-      try {
-        pngBuffer = await fs.readFile(filePath);
-        return pngBuffer;
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      // if not found, generate the file
-      const svg = await this.getSvg(name);
-      const pngBuffer = await this.svgToPng(svg, '#ffffff', 200);
-      // then save it to the cache
-      await this.saveFile(filePath, pngBuffer);
-      return pngBuffer;
-    }
+    // let pngBuffer = null;
+    // if (await this.ifFileExists(filePath)) {
+    //   try {
+    //     pngBuffer = await fs.readFile(filePath);
+    //     return pngBuffer;
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // } else {
+    // if not found, generate the file
+    const svg = await this.getSvg(name);
+    const pngBuffer = await this.svgToPng(svg, '#ffffff', 200);
+    // then save it to the cache
+    await this.saveFile(filePath, pngBuffer);
+    return pngBuffer;
+    // }
   }
 
   async ifFileExists(filePath: string) {
@@ -71,34 +71,34 @@ export class ImagesService {
       name + '.svg',
     );
     // look for the file in the cache
-    if (await this.ifFileExists(filePath)) {
-      //
-      console.log('svg exitst');
-      try {
-        const svg = await fs.readFile(filePath);
-        return svg.toString('utf-8');
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      const polygons = (await this.getPolygons(name)) || [];
-      const target = polygons.shift(); // remove the first polygon
-      const body = { target, polygons };
-      const kageServerUrl = this.configService.get('KAGE_SERVER');
-      const source = this.httpService.post(kageServerUrl, body).pipe(
-        catchError(() => {
-          throw new ForbiddenException('API not available');
-        }),
-        map((res) => res.data),
-      );
-      const svgHeader = `<?xml version="1.0" standalone="no"?>
+    // if (await this.ifFileExists(filePath)) {
+    //   //
+    //   console.log('svg exitst');
+    //   try {
+    //     const svg = await fs.readFile(filePath);
+    //     return svg.toString('utf-8');
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // } else {
+    const polygons = (await this.getPolygons(name)) || [];
+    const target = polygons.shift(); // remove the first polygon
+    const body = { target, polygons };
+    const kageServerUrl = this.configService.get('KAGE_SERVER');
+    const source = this.httpService.post(kageServerUrl, body).pipe(
+      catchError(() => {
+        throw new ForbiddenException('API not available');
+      }),
+      map((res) => res.data),
+    );
+    const svgHeader = `<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 `;
-      const svg = svgHeader + (await lastValueFrom(source));
-      await this.saveFile(filePath, Buffer.from(svg, 'utf8'));
-      return svg;
-    }
+    const svg = svgHeader + (await lastValueFrom(source));
+    await this.saveFile(filePath, Buffer.from(svg, 'utf8'));
+    return svg;
+    // }
   }
 
   async getPolygons(name: string, results = []): Promise<Kage[]> {
