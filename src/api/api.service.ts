@@ -5,12 +5,7 @@ import * as sharp from 'sharp';
 
 import { CreateDto, KageEditor, QueryDto, UpdateDto } from './dto';
 import { HttpService } from '@nestjs/axios';
-
-interface Kage {
-  name: string;
-  related?: string;
-  data: string;
-}
+import { Kage } from 'src/types';
 
 @Injectable()
 export class ApiService {
@@ -18,6 +13,41 @@ export class ApiService {
     private prisma: PrismaService,
     private httpService: HttpService,
   ) {}
+
+  async findAll({ skip = 0, take = 100 }: { skip?: number; take?: number }) {
+    const results = await this.prisma.glyphwiki.findMany({
+      skip,
+      take,
+    });
+
+    return results;
+  }
+
+  async findOne(name: string) {
+    const glyph = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name,
+      },
+    });
+    return glyph;
+  }
+
+  async create(dto: CreateDto) {
+    const glyphInDb = await this.prisma.glyphwiki.findUnique({
+      where: {
+        name: dto.name,
+      },
+    });
+    if (glyphInDb) {
+      return { message: 'glyph already exists' };
+    }
+
+    if (!dto.related) dto.related = '〓';
+    const glyph = await this.prisma.glyphwiki.create({
+      data: dto,
+    });
+    return glyph;
+  }
 
   async submitGlyph(kageEditorData: KageEditor) {
     const name = kageEditorData.page;
@@ -147,7 +177,7 @@ export class ApiService {
       // .post('http://kage.lab.hi.u-tokyo.ac.jp/api/gen', data)
       .pipe(
         catchError((err) => {
-          throw new ForbiddenException('API not available');
+          throw new ForbiddenException('API not available:' + err);
         }),
         map((res) => {
           return res.data;

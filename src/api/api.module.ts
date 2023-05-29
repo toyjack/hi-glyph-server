@@ -1,15 +1,11 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import {
-  ApiController,
-  GlyphController,
-  GlyphSearchController,
-} from './api.controller';
+import GlyphsController, { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 
 @Module({
   imports: [HttpModule],
-  controllers: [ApiController, GlyphController, GlyphSearchController],
+  controllers: [ApiController, GlyphsController],
   providers: [ApiService],
 })
 export class ApiModule {}

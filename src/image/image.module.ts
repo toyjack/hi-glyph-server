@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 
-import { ImagesController } from './images.controller';
-import { ImagesService } from './images.service';
+import { ImagesController } from './image.controller';
+import { ImagesService } from './image.service';
 
 @Module({
   imports: [HttpModule],
