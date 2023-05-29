@@ -15,6 +15,8 @@ import { ApiTags, ApiParam } from '@nestjs/swagger';
 import { ApiService } from './api.service';
 import { QueryDto, CreateDto, UpdateDto, KageEditor } from './dto';
 
+// TODO: 字体の処理を別のコントローラーに追加
+
 @ApiTags('Show Glyph')
 @Controller('api/glyph')
 export class GlyphController {
